@@ -65,13 +65,13 @@ class TableParser {
                         if ($td->hasAttribute('rowspan')) {
                             $rowspan = $td->getAttribute('rowspan');
                             $sheet->mergeCells($cell->getColumn().$cell->getRow().':'.$cell->getColumn().($cell->getRow() + 1));
-                            $mergeStyle = $sheet->getStyle($cell->getColumn().$cell->getRow().':'.$cell->getColumn().($cell->getRow() + 1));
+                            $mergeStyle = $sheet->getStyle($cell->getColumn().$cell->getRow().':'.$cell->getColumn().($cell->getRow() + $rowspan));
                             self::applyBorder($mergeStyle, $css);
                         }
                         if ($td->hasAttribute('colspan')) {
                             $colspan = $td->getAttribute('colspan');
                             $sheet->mergeCells($cell->getColumn().$cell->getRow().':'.chr(ord($cell->getColumn()) + 1).$cell->getRow());
-                            $mergeStyle = $sheet->getStyle($cell->getColumn().$cell->getRow().':'.chr(ord($cell->getColumn()) + 1).$cell->getRow());
+                            $mergeStyle = $sheet->getStyle($cell->getColumn().$cell->getRow().':'.chr(ord($cell->getColumn()) + $colspan).$cell->getRow());
                             self::applyBorder($mergeStyle, $css);
                         }
                     }

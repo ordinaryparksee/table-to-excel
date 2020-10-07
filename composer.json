@@ -1,0 +1,18 @@
+{
+    "name": "vaxy/table-to-excel",
+    "authors": [
+        {
+            "name": "vaxy",
+            "email": "vaxy@vaxy.world"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Vaxy\\": "src"
+        }
+    },
+    "require": {
+        "ext-dom": "*",
+        "phpoffice/phpspreadsheet": "^1.14"
+    }
+}

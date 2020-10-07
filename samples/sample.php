@@ -8,7 +8,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 use Vaxy\TableToExcel\TableParser;
 
-$spreadsheet = TableParser::parse(__DIR__.'/sample.html');
+$spreadsheet = TableParser::parseFromFile(__DIR__.'/sample.html');
 
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment;filename="sample.xlsx"');

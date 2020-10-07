@@ -14,7 +14,7 @@ class TableParser {
     public static function parse($source)
     {
         $dom = new DOMDocument();
-        $dom->loadHTMLFile($source);
+        $dom->loadHTML($source);
 
         $spreadsheet = new Spreadsheet();
 
@@ -82,6 +82,11 @@ class TableParser {
         }
 
         return $spreadsheet;
+    }
+
+    public static function parseFromFile($path)
+    {
+        return self::parse(file_get_contents($path));
     }
 
     public static function pixelToPoint($pixel)

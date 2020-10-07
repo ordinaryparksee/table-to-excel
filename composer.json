@@ -15,6 +15,6 @@
     },
     "require": {
         "ext-dom": "*",
-        "phpoffice/phpspreadsheet": "^1.14"
+        "phpoffice/phpspreadsheet": "^1.6.0"
     }
 }

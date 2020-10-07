@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "577a9c6fe61c561408ab024210a4b487",
+    "content-hash": "b63ff9d2c51ad1d5a7645d42da10f9c3",
     "packages": [
         {
             "name": "maennchen/zipstream-php",
@@ -642,6 +642,8 @@
     "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "ext-dom": "*"
+    },
     "platform-dev": []
 }

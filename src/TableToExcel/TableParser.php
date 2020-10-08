@@ -34,12 +34,26 @@ class TableParser {
                 $sheet->setTitle('Table'.$tableIndex);
             }
 
-            foreach ($table->getElementsByTagName('tr') as $rowIndex => $tr) {
+            $rowIndex = 0;
+            $rowspans = [];
+            foreach ($table->getElementsByTagName('tr') as $tr) {
+                $rowIndex++;
                 $columnIndex = 0;
+                $rowspanStep = 0;
                 foreach ($tr->childNodes as $td) {
                     if ($td->nodeName === 'th' || $td->nodeName === 'td') {
                         $columnIndex++;
-                        $cell = $sheet->getCellByColumnAndRow($columnIndex, $rowIndex + 1)->setValue($td->nodeValue);
+                        // var_dump($rowIndex, $columnIndex, $rowspans);
+                        if (array_key_exists($columnIndex + $rowspanStep, $rowspans)) {
+                            foreach ($rowspans[$columnIndex + $rowspanStep] as $rows) {
+                                if (in_array($rowIndex, $rows)) {
+                                    $rowspanStep++;
+                                    break;
+                                }
+                            }
+                        }
+                        $cell = $sheet->getCellByColumnAndRow($columnIndex + $rowspanStep, $rowIndex);
+                        $cell->setValue($td->nodeValue);
                         $style = $cell->getStyle();
                         $font = $style->getFont();
                         if ($td->nodeName === 'th') {
@@ -69,12 +83,19 @@ class TableParser {
                             $sheet->mergeCells($cell->getColumn().$cell->getRow().':'.$cell->getColumn().($cell->getRow() + $rowspan));
                             $mergeStyle = $sheet->getStyle($cell->getColumn().$cell->getRow().':'.$cell->getColumn().($cell->getRow() + $rowspan));
                             self::applyBorder($mergeStyle, $css);
+                            if (array_key_exists($columnIndex, $rowspans) === false) {
+                                $rowspans[$columnIndex] = [];
+                            }
+                            $rowspans[$columnIndex][] = range($rowIndex, $rowIndex + $rowspan);
                         }
                         if ($td->hasAttribute('colspan')) {
                             $colspan = $td->getAttribute('colspan') - 1;
                             $sheet->mergeCells($cell->getColumn().$cell->getRow().':'.chr(ord($cell->getColumn()) + $colspan).$cell->getRow());
                             $mergeStyle = $sheet->getStyle($cell->getColumn().$cell->getRow().':'.chr(ord($cell->getColumn()) + $colspan).$cell->getRow());
                             self::applyBorder($mergeStyle, $css);
+                            if ($colspan > 0) {
+                                $columnIndex += $colspan;
+                            }
                         }
                     }
                 }

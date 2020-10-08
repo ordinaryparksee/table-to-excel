@@ -13,6 +13,32 @@ class TableParser {
 
     public static $path;
 
+    public static function toExcelWidth($width)
+    {
+        if (preg_match('/px$/', $width) > 0) {
+            return self::pixelToPoint(preg_replace('/px$/', '', $width)) / 10 * 1.174;
+        }
+        else if (preg_match('/pt$/', $width) > 0) {
+            return preg_replace('/pt$/', '', $width) / 10 * 1.174;
+        }
+        else {
+            return $width;
+        }
+    }
+
+    public static function toExcelHeight($height)
+    {
+        if (preg_match('/px$/', $height) > 0) {
+            return self::pixelToPoint(preg_replace('/px$/', '', $height));
+        }
+        else if (preg_match('/pt$/', $height) > 0) {
+            return preg_replace('/pt$/', '', $height);
+        }
+        else {
+            return $height;
+        }
+    }
+
     public static function parse($source)
     {
         $dom = new DOMDocument();
@@ -34,16 +60,32 @@ class TableParser {
                 $sheet->setTitle('Table'.$tableIndex);
             }
 
-            $rowIndex = 0;
+            $tableRange = [[1, 1], [1, 1]];
+
+            $tableCss = CssParser::parse($table->getAttribute('style'));
+            if ($tableCss->has('margin-top')) {
+                $tableRange[0][1]++;
+                $marginTop = self::toExcelHeight($tableCss['margin-top']);
+                $sheet->getRowDimension(1)->setRowHeight($marginTop);
+            }
+            if ($tableCss->has('margin-left')) {
+                $tableRange[0][0]++;
+                $marginLeft = self::toExcelWidth($tableCss['margin-left']);
+                $sheet->getColumnDimensionByColumn(1)->setWidth($marginLeft);
+            }
+
+            $rowIndex = $tableRange[0][1] - 1;
             $rowspans = [];
             foreach ($table->getElementsByTagName('tr') as $tr) {
                 $rowIndex++;
-                $columnIndex = 0;
+                if ($tableRange[1][1] < $rowIndex) {
+                    $tableRange[1][1] = $rowIndex;
+                }
+                $columnIndex = $tableRange[0][0] - 1;
                 $rowspanStep = 0;
                 foreach ($tr->childNodes as $td) {
                     if ($td->nodeName === 'th' || $td->nodeName === 'td') {
                         $columnIndex++;
-                        // var_dump($rowIndex, $columnIndex, $rowspans);
                         if (array_key_exists($columnIndex + $rowspanStep, $rowspans)) {
                             foreach ($rowspans[$columnIndex + $rowspanStep] as $rows) {
                                 if (in_array($rowIndex, $rows)) {
@@ -73,6 +115,12 @@ class TableParser {
 
                         // Cascading Style Sheet
                         $css = CssParser::parse($td->getAttribute('style'));
+                        if ($td->hasAttribute('width')) {
+                            $css['width'] = $td->getAttribute('width');
+                        }
+                        if ($td->hasAttribute('height')) {
+                            $css['height'] = $td->getAttribute('height');
+                        }
                         if ($css) {
                             self::applyCellCss($sheet, $cell, $css);
                         }
@@ -97,12 +145,25 @@ class TableParser {
                                 $columnIndex += $colspan;
                             }
                         }
+
+                        if ($tableRange[1][0] < $columnIndex + $rowspanStep) {
+                            $tableRange[1][0] = $columnIndex + $rowspanStep;
+                        }
                     }
+                }
+            }
+
+            if ($table->hasAttribute('style')) {
+                if ($tableCss->has('border') || $tableCss->has('border-style') || $tableCss->has('border-color') || $tableCss->has('border-width')) {
+                    $tableStyle = $sheet->getStyleBycolumnAndRow($tableRange[0][0], $tableRange[0][1], $tableRange[1][0], $tableRange[1][1]);
+                    self::applyBorder($tableStyle, $tableCss);
                 }
             }
 
             $sheet->setSelectedCell('A1');
         }
+
+        $spreadsheet->setActiveSheetIndex(0);
 
         return $spreadsheet;
     }
@@ -161,24 +222,14 @@ class TableParser {
 
         // Height
         if ($css->has('height')) {
-            if (preg_match('/px$/', $css['height']) > 0) {
-                $height = self::pixelToPoint(preg_replace('/px$/', '', $css['height']));
-            }
-            if (preg_match('/pt$/', $css['height']) > 0) {
-                $height = preg_replace('/pt$/', '', $css['height']);
-            }
+            $height = self::toExcelHeight($css['height']);
             $sheet->getRowDimension($cell->getRow())->setRowHeight($height);
         }
 
         // Width
         if ($css->has('width')) {
-            if (preg_match('/px$/', $css['width']) > 0) {
-                $width = self::pixelToPoint(preg_replace('/px$/', '', $css['width'])) / 10;
-            }
-            if (preg_match('/pt$/', $css['width']) > 0) {
-                $width = preg_replace('/pt$/', '', $css['width']) / 10;
-            }
-            $sheet->getColumnDimension($cell->getColumn())->setWidth($width * 1.174);
+            $width = self::toExcelHeight($css['width']);
+            $sheet->getColumnDimension($cell->getColumn())->setWidth($width);
         }
 
         // Alignment
@@ -220,25 +271,50 @@ class TableParser {
 
     public static function applyBorder($style, $css)
     {
+        $borderStyle = null;
+        $borderColor = null;
+        $borderWidth = null;
+
         if ($css->has('border')) {
             $border = explode(' ', $css['border']);
             while (count($border) > 0) {
                 $attribute = array_shift($border);
                 // Border width
                 if (preg_match('/px$/', $attribute) > 0) {
+                    $borderWidth = (int)preg_replace('/px$/', '', $attribute);
                 }
                 // Border color
                 else if (preg_match('/^#/', $attribute) > 0) {
+                    $borderColor = preg_replace('/^#/', '', $attribute);
                 }
                 // Border style
                 else {
-                    if ($attribute === 'solid') {
-                        $style->getBorders()->getAllBorders()->setBorderStyle('thin');
-                    } else {
-                        $style->getBorders()->getAllBorders()->setBorderStyle($attribute);
-                    }
+                    $borderStyle = $attribute;
                 }
             }
+        }
+
+        if ($css->has('border-style')) {
+            $borderStyle = $css['border-style'];
+        }
+        if ($css->has('border-color')) {
+            $borderColor = $css['border-color'];
+        }
+        if ($css->has('border-width')) {
+            $borderWidth = $css['border-width'];
+        }
+
+        if ($borderWidth === 2) {
+            $style->getBorders()->getOutline()->setBorderStyle('medium');
+        }
+        else if ($borderWidth > 2) {
+            $style->getBorders()->getOutline()->setBorderStyle('thick');
+        }
+        else if ($borderStyle === 'solid') {
+            $style->getBorders()->getOutline()->setBorderStyle('thin');
+        }
+        else {
+            $style->getBorders()->getOutline()->setBorderStyle($borderStyle);
         }
     }
 

@@ -4,8 +4,50 @@
         <meta charset="utf-8"/>
     </head>
     <body>
-        <table>
+        <table style="border-style: thick; margin-top: 14; margin-left: 2.5;">
             <caption>Sample Sheet1</caption>
+            <thead>
+                <tr>
+                    <th style="height: 40px; vertical-align: bottom;">Field1</th>
+                    <th style="font-weight: lighter; background-color: #af30df;">Field2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight: bold; color: #ff0000;">cell1</td>
+                    <td width="100" style="text-align: right;">cell2</td>
+                </tr>
+                <tr>
+                    <td number-format>10000</td>
+                    <td rowspan="2" style="border: solid #000000 1px;">cell2</td>
+                </tr>
+                <tr>
+                    <td>=1 + 2</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="border: solid #000000 1px; font-family:'Courier New', Courier, monospace; font-size: 20px;">합계</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="border: solid #000000 1px; font-family:'Courier New', Courier, monospace; font-size: 20px;"><?=$variable?></td>
+                </tr>
+                <tr>
+                    <td rowspan="3">Field1</td>
+                    <td colspan="2">Value1</td>
+                    <td rowspan="3">Field2</td>
+                    <td colspan="4">Value2</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Value1</td>
+                    <td colspan="4">Value2</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Value1</td>
+                    <td colspan="4">Value2</td>
+                </tr>
+            </tbody>
+        </table>
+        <table>
+            <caption>Sample Sheet2</caption>
             <thead>
                 <tr>
                     <th style="height: 40px; vertical-align: bottom;">Field1</th>

@@ -11,6 +11,8 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class TableParser {
 
+    public static $path;
+
     public static function parse($source)
     {
         $dom = new DOMDocument();
@@ -84,9 +86,18 @@ class TableParser {
         return $spreadsheet;
     }
 
-    public static function parseFromFile($path)
+    protected static function exportFile(string $path, array $data)
     {
-        return self::parse(file_get_contents($path));
+        self::$path = $path;
+        ob_start();
+        extract($data);
+        include self::$path;
+        return ob_get_clean();
+    }
+
+    public static function parseFromFile($path, $data = [])
+    {
+        return self::parse(self::exportFile($path, $data));
     }
 
     public static function pixelToPoint($pixel)

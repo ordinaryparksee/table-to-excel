@@ -14,7 +14,7 @@ class TableParser {
     public static function parse($source)
     {
         $dom = new DOMDocument();
-        $dom->loadHTML($source);
+        $dom->loadHTML(mb_convert_encoding($source, 'HTML-ENTITIES', 'UTF-8'));
 
         $spreadsheet = new Spreadsheet();
 
@@ -63,13 +63,13 @@ class TableParser {
 
                         // Merge
                         if ($td->hasAttribute('rowspan')) {
-                            $rowspan = $td->getAttribute('rowspan');
+                            $rowspan = $td->getAttribute('rowspan') - 1;
                             $sheet->mergeCells($cell->getColumn().$cell->getRow().':'.$cell->getColumn().($cell->getRow() + $rowspan));
                             $mergeStyle = $sheet->getStyle($cell->getColumn().$cell->getRow().':'.$cell->getColumn().($cell->getRow() + $rowspan));
                             self::applyBorder($mergeStyle, $css);
                         }
                         if ($td->hasAttribute('colspan')) {
-                            $colspan = $td->getAttribute('colspan');
+                            $colspan = $td->getAttribute('colspan') - 1;
                             $sheet->mergeCells($cell->getColumn().$cell->getRow().':'.chr(ord($cell->getColumn()) + $colspan).$cell->getRow());
                             $mergeStyle = $sheet->getStyle($cell->getColumn().$cell->getRow().':'.chr(ord($cell->getColumn()) + $colspan).$cell->getRow());
                             self::applyBorder($mergeStyle, $css);

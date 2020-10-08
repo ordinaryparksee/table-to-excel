@@ -68,6 +68,9 @@ class TableParser {
             if ($tableCss->has('font-family')) {
                 $cssExtend['font-family'] = $tableCss['font-family'];
             }
+            if ($tableCss->has('font-size')) {
+                $cssExtend['font-size'] = $tableCss['font-size'];
+            }
 
             if ($tableCss->has('margin-top')) {
                 $tableRange[0][1]++;
@@ -117,6 +120,10 @@ class TableParser {
                             } else {
                                 $style->getNumberFormat()->setFormatCode('#,##0');
                             }
+                        }
+
+                        if ($td->hasAttribute('wrap-text')) {
+                            $style->getAlignment()->setWrapText(true);
                         }
 
                         // Cascading Style Sheet

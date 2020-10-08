@@ -266,6 +266,9 @@ class TableParser {
             if (preg_match('/px$/', $css['font-size']) > 0) {
                 $font->setSize(self::pixelToPoint(preg_replace('/px$/', '', $css['font-size'])));
             }
+            else if (preg_match('/pt$/', $css['font-size']) > 0) {
+                $font->setSize(preg_replace('/pt$/', '', $css['font-size']));
+            }
             else {
                 $font->setSize($css['font-size']);
             }

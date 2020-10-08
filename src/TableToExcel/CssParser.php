@@ -6,9 +6,9 @@ use ArrayAccess;
 
 class CssParser implements ArrayAccess {
 
-    public static function parse($source) : self
+    public static function parse($source, $extension = []) : self
     {
-        $style = [];
+        $style = $extension;
         if ($source) {
             foreach (explode(';', $source) as $fragment) {
                 if ($fragment) {

@@ -63,6 +63,12 @@ class TableParser {
             $tableRange = [[1, 1], [1, 1]];
 
             $tableCss = CssParser::parse($table->getAttribute('style'));
+
+            $cssExtend = [];
+            if ($tableCss->has('font-family')) {
+                $cssExtend['font-family'] = $tableCss['font-family'];
+            }
+
             if ($tableCss->has('margin-top')) {
                 $tableRange[0][1]++;
                 $marginTop = self::toExcelHeight($tableCss['margin-top']);
@@ -114,7 +120,7 @@ class TableParser {
                         }
 
                         // Cascading Style Sheet
-                        $css = CssParser::parse($td->getAttribute('style'));
+                        $css = CssParser::parse($td->getAttribute('style'), $cssExtend);
                         if ($td->hasAttribute('width')) {
                             $css['width'] = $td->getAttribute('width');
                         }

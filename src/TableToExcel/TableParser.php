@@ -39,6 +39,64 @@ class TableParser {
         }
     }
 
+    public static function makeTableLayout(DOMElement $table)
+    {
+        $tableRange = [[1, 1], [1, 1]];
+
+        $tableCss = CssParser::parse($table->getAttribute('style'));
+
+        if ($tableCss->has('margin-top')) {
+            $tableRange[0][1]++;
+        }
+        if ($tableCss->has('margin-left')) {
+            $tableRange[0][0]++;
+        }
+
+        $rowIndex = $tableRange[0][1] - 1;
+        $rowspans = [];
+        foreach ($table->getElementsByTagName('tr') as $tr) {
+            $rowIndex++;
+            if ($tableRange[1][1] < $rowIndex) {
+                $tableRange[1][1] = $rowIndex;
+            }
+            $rowspanStep = 0;
+            $columnIndex = $tableRange[0][0] - 1;
+            foreach ($tr->childNodes as $td) {
+                if ($td->nodeName === 'th' || $td->nodeName === 'td') {
+                    $columnIndex++;
+                    if (array_key_exists($columnIndex + $rowspanStep, $rowspans)) {
+                        foreach ($rowspans[$columnIndex + $rowspanStep] as $rows) {
+                            if (in_array($rowIndex, $rows)) {
+                                $rowspanStep++;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Merge
+                    if ($td->hasAttribute('rowspan')) {
+                        $rowspan = $td->getAttribute('rowspan') - 1;
+                        if (array_key_exists($columnIndex, $rowspans) === false) {
+                            $rowspans[$columnIndex] = [];
+                        }
+                        $rowspans[$columnIndex][] = range($rowIndex, $rowIndex + $rowspan);
+                    }
+                    if ($td->hasAttribute('colspan')) {
+                        $colspan = $td->getAttribute('colspan') - 1;
+                        if ($colspan > 0) {
+                            $columnIndex += $colspan;
+                        }
+                    }
+
+                    if ($tableRange[1][0] < $columnIndex + $rowspanStep) {
+                        $tableRange[1][0] = $columnIndex + $rowspanStep;
+                    }
+                }
+            }
+        }
+        return $tableRange;
+    }
+
     public static function parse($source)
     {
         $dom = new DOMDocument();
@@ -47,6 +105,8 @@ class TableParser {
         $spreadsheet = new Spreadsheet();
 
         foreach ($dom->getElementsByTagName('table') as $tableIndex => $table) {
+            $layout = self::makeTableLayout($table);
+
             $caption = $table->getElementsByTagName('caption')->item(0);
             if ($tableIndex < 1) {
                 $sheet = $spreadsheet->getActiveSheet();
@@ -100,8 +160,22 @@ class TableParser {
                 if ($tableRange[1][1] < $rowIndex) {
                     $tableRange[1][1] = $rowIndex;
                 }
-                $columnIndex = $tableRange[0][0] - 1;
                 $rowspanStep = 0;
+                if ($tr->hasAttribute('height')) {
+                    $sheet->getRowDimension($rowIndex)->setRowHeight($tr->getAttribute('height'));
+                }
+                if ($tr->hasAttribute('style')) {
+                    $rowCss = CssParser::parse($tr->getAttribute('style'), $cssExtend);
+                    if ($rowCss->has('font-family')) {
+                        $cssExtend['font-family'] = $rowCss['font-family'];
+                    }
+                    if ($rowCss->has('font-size')) {
+                        $cssExtend['font-size'] = $rowCss['font-size'];
+                    }
+                } else {
+                    $rowCss = null;
+                }
+                $columnIndex = $tableRange[0][0] - 1;
                 foreach ($tr->childNodes as $td) {
                     if ($td->nodeName === 'th' || $td->nodeName === 'td') {
                         $columnIndex++;
@@ -173,6 +247,11 @@ class TableParser {
                             $tableRange[1][0] = $columnIndex + $rowspanStep;
                         }
                     }
+                }
+
+                if ($rowCss) {
+                    $rowStyle = $sheet->getStyleBycolumnAndRow($tableRange[0][0], $rowIndex, $layout[1][0], $rowIndex);
+                    self::applyBorder($rowStyle, $rowCss);
                 }
             }
 
@@ -340,7 +419,9 @@ class TableParser {
             $style->getBorders()->getOutline()->setBorderStyle('thin');
         }
         else {
-            $style->getBorders()->getOutline()->setBorderStyle($borderStyle);
+            if ($borderStyle) {
+                $style->getBorders()->getOutline()->setBorderStyle($borderStyle);
+            }
         }
     }
 

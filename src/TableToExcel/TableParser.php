@@ -83,6 +83,16 @@ class TableParser {
                 $sheet->getColumnDimensionByColumn(1)->setWidth($marginLeft);
             }
 
+            foreach ($table->getElementsByTagName('col') as $colIndex => $col) {
+                if ($col->hasAttribute('width')) {
+                    if ($tableCss->has('margin-left')) {
+                        $sheet->getColumnDimensionByColumn($colIndex + 2)->setWidth($col->getAttribute('width'));
+                    } else {
+                        $sheet->getColumnDimensionByColumn($colIndex + 1)->setWidth($col->getAttribute('width'));
+                    }
+                }
+            }
+    
             $rowIndex = $tableRange[0][1] - 1;
             $rowspans = [];
             foreach ($table->getElementsByTagName('tr') as $tr) {

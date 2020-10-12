@@ -219,7 +219,9 @@ class TableParser {
                             }
                         }
                         $cell = $sheet->getCellByColumnAndRow($columnIndex + $rowspanStep, $rowIndex);
-                        $cell->setValue($td->textContent);
+                        $cell->setValue(preg_replace_callback('/\{\{([^}]+)\}\}/', function($_) use ($cell) {
+                            return eval('return '.$_[1].';');
+                        }, $td->textContent));
                         $style = $cell->getStyle();
                         $style->getAlignment()->setVertical('center');
                         $pre = $td->getElementsByTagName('pre');

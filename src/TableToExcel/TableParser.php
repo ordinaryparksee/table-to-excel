@@ -131,6 +131,9 @@ class TableParser {
             if ($tableCss->has('font-size')) {
                 $cssExtend['font-size'] = $tableCss['font-size'];
             }
+            if ($tableCss->has('text-align')) {
+                $cssExtend['text-align'] = $tableCss['text-align'];
+            }
 
             if ($tableCss->has('margin-top')) {
                 $tableRange[0][1]++;
@@ -161,16 +164,20 @@ class TableParser {
                     $tableRange[1][1] = $rowIndex;
                 }
                 $rowspanStep = 0;
+                $_cssExtend = $cssExtend;
                 if ($tr->hasAttribute('height')) {
                     $sheet->getRowDimension($rowIndex)->setRowHeight($tr->getAttribute('height'));
                 }
                 if ($tr->hasAttribute('style')) {
                     $rowCss = CssParser::parse($tr->getAttribute('style'), $cssExtend);
                     if ($rowCss->has('font-family')) {
-                        $cssExtend['font-family'] = $rowCss['font-family'];
+                        $_cssExtend['font-family'] = $rowCss['font-family'];
                     }
                     if ($rowCss->has('font-size')) {
-                        $cssExtend['font-size'] = $rowCss['font-size'];
+                        $_cssExtend['font-size'] = $rowCss['font-size'];
+                    }
+                    if ($rowCss->has('text-align')) {
+                        $_cssExtend['text-align'] = $rowCss['text-align'];
                     }
                 } else {
                     $rowCss = null;
@@ -197,7 +204,7 @@ class TableParser {
                         $font = $style->getFont();
                         if ($td->nodeName === 'th') {
                             $font->setBold(true);
-                            $style->getAlignment()->setVertical('center');
+                            $style->getAlignment()->setVertical('center')->setHorizontal('center');
                         }
 
                         // Formatting
@@ -211,7 +218,7 @@ class TableParser {
                         }
 
                         // Cascading Style Sheet
-                        $css = CssParser::parse($td->getAttribute('style'), $cssExtend);
+                        $css = CssParser::parse($td->getAttribute('style'), $_cssExtend);
                         if ($td->hasAttribute('width')) {
                             $css['width'] = $td->getAttribute('width');
                         }

@@ -188,8 +188,12 @@ class TableParser {
                             }
                         }
                         $cell = $sheet->getCellByColumnAndRow($columnIndex + $rowspanStep, $rowIndex);
-                        $cell->setValue($td->nodeValue);
+                        $cell->setValue($td->textContent);
                         $style = $cell->getStyle();
+                        $pre = $td->getElementsByTagName('pre');
+                        if ($pre && $pre->length > 0) {
+                            $style->getAlignment()->setWrapText(true);
+                        }
                         $font = $style->getFont();
                         if ($td->nodeName === 'th') {
                             $font->setBold(true);
@@ -204,10 +208,6 @@ class TableParser {
                             } else {
                                 $style->getNumberFormat()->setFormatCode('#,##0');
                             }
-                        }
-
-                        if ($td->hasAttribute('wrap-text')) {
-                            $style->getAlignment()->setWrapText(true);
                         }
 
                         // Cascading Style Sheet
@@ -376,12 +376,33 @@ class TableParser {
 
     public static function applyBorder($style, $css)
     {
+        $border = [];
         $borderStyle = null;
         $borderColor = null;
         $borderWidth = null;
 
         if ($css->has('border')) {
             $border = explode(' ', $css['border']);
+            $target = $style->getBorders()->getOutline();
+        }
+        else if ($css->has('border-left')) {
+            $border = explode(' ', $css['border-left']);
+            $target = $style->getBorders()->getLeft();
+        }
+        else if ($css->has('border-right')) {
+            $border = explode(' ', $css['border-right']);
+            $target = $style->getBorders()->getRight();
+        }
+        else if ($css->has('border-top')) {
+            $border = explode(' ', $css['border-top']);
+            $target = $style->getBorders()->getTop();
+        }
+        else if ($css->has('border-bottom')) {
+            $border = explode(' ', $css['border-bottom']);
+            $target = $style->getBorders()->getBottom();
+        }
+
+        if (isset($target)) {
             while (count($border) > 0) {
                 $attribute = array_shift($border);
                 // Border width
@@ -397,30 +418,30 @@ class TableParser {
                     $borderStyle = $attribute;
                 }
             }
-        }
-
-        if ($css->has('border-style')) {
-            $borderStyle = $css['border-style'];
-        }
-        if ($css->has('border-color')) {
-            $borderColor = $css['border-color'];
-        }
-        if ($css->has('border-width')) {
-            $borderWidth = $css['border-width'];
-        }
-
-        if ($borderWidth === 2) {
-            $style->getBorders()->getOutline()->setBorderStyle('medium');
-        }
-        else if ($borderWidth > 2) {
-            $style->getBorders()->getOutline()->setBorderStyle('thick');
-        }
-        else if ($borderStyle === 'solid') {
-            $style->getBorders()->getOutline()->setBorderStyle('thin');
-        }
-        else {
-            if ($borderStyle) {
-                $style->getBorders()->getOutline()->setBorderStyle($borderStyle);
+    
+            if ($css->has('border-style')) {
+                $borderStyle = $css['border-style'];
+            }
+            if ($css->has('border-color')) {
+                $borderColor = $css['border-color'];
+            }
+            if ($css->has('border-width')) {
+                $borderWidth = $css['border-width'];
+            }
+    
+            if ($borderWidth === 2) {
+                $target->setBorderStyle('medium');
+            }
+            else if ($borderWidth > 2) {
+                $target->setBorderStyle('thick');
+            }
+            else if ($borderStyle === 'solid') {
+                $target->setBorderStyle('thin');
+            }
+            else {
+                if ($borderStyle) {
+                    $target->setBorderStyle($borderStyle);
+                }
             }
         }
     }

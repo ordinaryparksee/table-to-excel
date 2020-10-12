@@ -1,6 +1,6 @@
 {
     "name": "vaxy/table-to-excel",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Convert HTML Table to phpspreadsheet",
     "authors": [
         {

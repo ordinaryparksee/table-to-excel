@@ -134,6 +134,18 @@ class TableParser {
             if ($tableCss->has('text-align')) {
                 $cssExtend['text-align'] = $tableCss['text-align'];
             }
+            if ($tableCss->has('vertical-align')) {
+                $cssExtend['vertical-align'] = $tableCss['vertical-align'];
+            }
+            if ($tableCss->has('color')) {
+                $cssExtend['color'] = $tableCss['color'];
+            }
+            if ($tableCss->has('background')) {
+                $cssExtend['background'] = $tableCss['background'];
+            }
+            if ($tableCss->has('background-color')) {
+                $cssExtend['background-color'] = $tableCss['background-color'];
+            }
 
             if ($tableCss->has('margin-top')) {
                 $tableRange[0][1]++;
@@ -179,6 +191,18 @@ class TableParser {
                     if ($rowCss->has('text-align')) {
                         $_cssExtend['text-align'] = $rowCss['text-align'];
                     }
+                    if ($rowCss->has('vertical-align')) {
+                        $_cssExtend['vertical-align'] = $rowCss['vertical-align'];
+                    }
+                    if ($rowCss->has('color')) {
+                        $_cssExtend['color'] = $rowCss['color'];
+                    }
+                    if ($rowCss->has('background')) {
+                        $_cssExtend['background'] = $rowCss['background'];
+                    }
+                    if ($rowCss->has('background-color')) {
+                        $_cssExtend['background-color'] = $rowCss['background-color'];
+                    }
                 } else {
                     $rowCss = null;
                 }
@@ -197,6 +221,7 @@ class TableParser {
                         $cell = $sheet->getCellByColumnAndRow($columnIndex + $rowspanStep, $rowIndex);
                         $cell->setValue($td->textContent);
                         $style = $cell->getStyle();
+                        $style->getAlignment()->setVertical('center');
                         $pre = $td->getElementsByTagName('pre');
                         if ($pre && $pre->length > 0) {
                             $style->getAlignment()->setWrapText(true);

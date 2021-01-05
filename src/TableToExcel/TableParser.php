@@ -100,7 +100,7 @@ class TableParser {
     public static function parse($source)
     {
         $dom = new DOMDocument();
-        $dom->loadHTML(mb_convert_encoding($source, 'HTML-ENTITIES', 'UTF-8'));
+        $dom->loadHTML(mb_convert_encoding(str_replace('&', '&amp;', $source), 'HTML-ENTITIES', 'UTF-8'));
 
         $spreadsheet = new Spreadsheet();
 
